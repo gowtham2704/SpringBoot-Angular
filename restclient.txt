@@ -1,0 +1,136 @@
+list-user.component.ts
+**********************
+import { Component, OnInit } from '@angular/core';
+import {UserService} from '../../shared_service/user.service';
+import {User} from  '../../user';
+import {Router} from '@angular/router';
+
+
+@Component({
+  selector: 'app-listuser',
+  templateUrl: './listuser.component.html',
+  styleUrls: ['./listuser.component.styl']
+})
+export class ListuserComponent implements OnInit {
+  private users:User[];
+
+  constructor(private _userService:UserService, private _router:Router) { }
+
+  ngOnInit() {
+this._userService.getUsers().subscribe((users)=>{
+  console.log(users);
+  this.users=users;
+},(error)=>{
+  console.log(error);
+})
+
+}
+
+deleteUser(user)
+{
+  this._userService.deleteUser(user.id).subscribe((data)=>{
+    this.users.splice(this.users.indexOf(user),1);
+  },(error)=>{
+    console.log(error);
+  });
+}
+
+
+updateUser(user){
+
+  this._userService.setter(user);
+  this._router.navigate(['/op']);
+
+
+}
+newUser(){
+  let user=new User();
+this._userService.setter(user);
+  this._router.navigate(['/op']);
+  
+}
+  }
+
+listuser.component.html
+***********************
+<div class="container">
+        <table  class="table table.striped">
+                <thead>
+                <th>Id</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Operations</th>
+                </thead>
+                <tbody>
+                    <tr *ngFor='let user of users'>
+                        <td>{{user.id}}</td>
+                        <td>{{user.fname}}</td>
+                        <td>{{user.lname}}</td>
+                        <td><button class="btn btn-danger" (click)="deleteUser(user)">Delete</button></td>
+                        <td><button class="btn btn-primary" (click)="updateUser(user)">Edit</button></td>
+                    </tr>
+                </tbody>
+                </table>
+                <td><button class="btn  btn-primary" (click)="newUser()">New User</button></td>
+</div>
+
+
+user-form.component.ts
+**********************
+import { Component, OnInit } from '@angular/core';
+import { User } from 'src/app/user';
+import {Router} from '@angular/router';
+import {UserService} from '../../shared_service/user.service';
+
+
+@Component({
+  selector: 'app-user-form',
+  templateUrl: './user-form.component.html',
+  styleUrls: ['./user-form.component.styl']
+})
+export class UserFormComponent implements OnInit {
+private user:User;
+
+  constructor(private _userService:UserService,private _router:Router) { }
+
+  ngOnInit() {
+    this.user=this._userService.getter();
+  }
+processForm(){
+  if(this.user.id==undefined){
+    this._userService.createUser(this.user).subscribe((user)=>{
+      console.log(user);
+      this._router.navigate(['/'])
+    },(error)=>{
+      console.log(error);
+    });
+  }else{
+    this._userService.updateUser(this.user).subscribe((user)=>{
+      console.log(user);
+      this._router.navigate(['/']);
+    },(error)=>{
+      console.log(error);
+    });
+  }
+}
+}
+
+
+userform.component.html
+***********************
+<div class="container">
+    <form (ngSubmit)="processForm()">
+        <div calss="form group">
+            <input type="text" name="id" calss="form-control" [(ngModel)]="user.id">
+        </div>
+        <div calss="form group">
+            <label for="fname">First Name</label>
+                <input type="text" name="fname" calss="form-control" [(ngModel)]="user.fname">
+            </div>
+            <div calss="form group">
+                    <label for="lname">Last Name</label>
+                    <input type="text" name="lname" calss="form-control" [(ngModel)]="user.lname">
+                </div>
+                <input type="submit" value="save" class="btn btn-success">
+    </form>
+</div>
